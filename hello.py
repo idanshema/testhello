@@ -25,6 +25,5 @@ def mfw(x,n):
 
 x=input("Enter the file name: ")
 n = int(input("Enter the number of most frequent words: "))
-r=mfw(x,n)
-print(r)
+print(mfw(x,n))
        
