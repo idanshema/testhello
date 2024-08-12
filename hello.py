@@ -15,7 +15,6 @@ for word in f_words:
 
 sorted_word_count = dict(sorted(word_count.items(), key=lambda x: x[1], reverse=True))
 
-
 n = int(input("Enter the number of most frequent words: "))
 for word, count in sorted_word_count.items():
     print(f"the word {word} is shown {count} times")
