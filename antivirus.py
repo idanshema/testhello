@@ -18,7 +18,7 @@ url= r"https://virustotal.com/vtapi/v2/file/scan"
 
 api=open('vt-api.txt', 'r').read()
 
-file_path=input(colorama.Fore.Yellow + "enter the path of the file >>>")
+file_path=input(colorama.Fore.YELLOW + "enter the path of the file >>>")
 pramas={'apikey':api}
 
 file_to_upload= {'file': open(file_path, 'rb')}
