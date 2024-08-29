@@ -23,7 +23,7 @@ pramas={'apikey':api}
 
 file_to_upload= {'file': open(file_path, 'rb')}
 
-response=requests.post(url, file=file_to_upload,params=pramas)
+response=requests.post(url, file=file_to_upload,pramas=pramas)
 file_url=f'https://virustotal.com/v3/files/{(response.json())["shal"]}'
 
 headers={'accept':'application/json','x-apikey':api}
