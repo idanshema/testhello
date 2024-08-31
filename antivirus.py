@@ -1,77 +1,78 @@
-import json
+
+import os
 import requests
-import colorama
+import hashlib
+from colorama import init, Fore, Style
 import sys
-from time import sleep
+import time
 
-colorama.init()
+# Initialize colorama
+init()
 
-def type(words:str):
-    for char in words:
-        sleep(0.015)
+# Function to create a typing effect
+def type(text, delay=0.0001):
+    for char in text:
         sys.stdout.write(char)
         sys.stdout.flush()
+        time.sleep(delay)
     print()
 
+# Function to get the MD5 hash of a file
+def get_file_hash(file_path):
+    hash_md5 = hashlib.md5()
+    try:
+        with open(file_path, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                hash_md5.update(chunk)
+    except Exception as e:
+        type(Fore.RED + f"Error reading file {file_path}: {e}")
+        return None
+    return hash_md5.hexdigest()
 
-url= r"https://virustotal.com/vtapi/v2/file/scan"
-
-api=open('vt-api.txt', 'r').read()
-
-file_path=input(colorama.Fore.YELLOW + "enter the path of the file >>>")
-pramas={'apikey':api}
-
-file_to_upload= {'file': open(file_path, 'rb')}
-
-response=requests.post(url, file=file_to_upload,pramas=pramas)
-file_url=f'https://virustotal.com/v3/files/{(response.json())["shal"]}'
-
-headers={'accept':'application/json','x-apikey':api}
-type=(colorama.Fore.YELLOW + 'Analyzing...')
-
-response=requests.get(file_url, headers=headers)
-
-report=response.text
-report=json.loads(report)
-
-name= ((report['data'])['attributes']).get('meaningful_name','unable to fetch')
-hash= ((report['data'])['attributes'])["sha256"]
-descp= ((report['data'])['attributes'])["type description"]
-size= (((report['data'])['attributes'])["size"])* 10**-3 
-result= ((report['data'])['attributes'])["last_analysis_result"]
-
-print()
-type((colorama.Fore.WHITE + "name : ", colorama.Fore.YELLOW + f"{name}"))
-type((colorama.Fore.WHITE + "size : ", colorama.Fore.YELLOW + f"{size} KB"))
-type((colorama.Fore.WHITE + "description : ", colorama.Fore.YELLOW + f"{descp}"))
-type((colorama.Fore.WHITE + "sha-256 hash : ", colorama.Fore.YELLOW + f"{hash}"))
-
-malicious_count=0
-print()
-
-for key,values in result.items():
-    key=colorama.Fore.WHITE + f'{key}'
-    verdict=values('catagories')
-    if verdict == 'undetected':
-        verdict=colorama.Fore.GREEN +'undetected'
-    elif verdict == 'type-unsupported':
-        verdict=colorama.Fore.RED +'type-unsupported'
-    elif verdict == 'malicious':
-        malicious_count+=1
-        verdict=colorama.Fore.RED +'malicious'
+# Function to check file with VirusTotal
+def check_file_with_virustotal(api_key, file_hash):
+    url = f"https://www.virustotal.com/api/v3/files/{file_hash}"
+    headers = {
+        "x-apikey": api_key
+    }
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        return response.json()
     else:
-        verdict=colorama.Fore.RED + f'{verdict}'
-        str=f'{key}:{verdict}'
-    type(str)
-    print()
+        type(Fore.RED + f"Error querying VirusTotal: {response.status_code}")
+        return None
 
-if malicious_count != 0:
-    type(colorama.Back.WHITE + colorama.Fore.RED + f'\t\t\t\t{malicious_count} antivirus found the given file malicious :(')
-elif malicious_count==0:
-    type(colorama.Back.WHITE + colorama.Fore.GREEN + f'\t\t\t\t No antivirus found the given file malicious :)')
+# Function to scan files in a folder
+def scan_folder(api_key, folder_path):
+    for root, dirs, files in os.walk(folder_path):
+        for file in files:
+            file_path = os.path.join(root, file)
+            type(Style.BRIGHT + Fore.YELLOW + f"Scanning file: {file_path}")
+            file_hash = get_file_hash(file_path)
+            if file_hash:
+                result = check_file_with_virustotal(api_key, file_hash)
+                if result:
+                    data = result.get("data", {}).get("attributes", {})
+                    if data.get("last_analysis_stats", {}).get("malicious", 0) > 0:
+                        type(Fore.RED + f"File {file_path} is malicious!")
+                    else:
+                        type(Fore.GREEN + f"File {file_path} is clean.")
+            print(Style.RESET_ALL)
 
-print(colorama.Back.BLACK + ' ')
-print()
+# Main function
+def main():
+    type(Fore.CYAN + "Enter your VirusTotal API key: ", delay=0.02)
+    api_key = input()
+    type(Fore.CYAN + "Enter the path to the folder you want to scan: ", delay=0.02)
+    folder_path = input()
+    
+    if not os.path.exists(folder_path):
+        type(Fore.RED + "The folder path does not exist. Please enter a valid path.")
+        return
+    
+    scan_folder(api_key, folder_path)
+    type(Fore.CYAN + "Scanning completed.")
+    print(Style.RESET_ALL)
 
-
-
+if __name__ == "__main__":
+    main()
