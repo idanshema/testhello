@@ -6,10 +6,8 @@ from colorama import init, Fore, Style
 import sys
 import time
 
-# Initialize colorama
 init()
 
-# Function to create a typing effect
 def type(text, delay=0.0001):
     for char in text:
         sys.stdout.write(char)
@@ -17,7 +15,6 @@ def type(text, delay=0.0001):
         time.sleep(delay)
     print()
 
-# Function to get the MD5 hash of a file
 def get_file_hash(file_path):
     hash_md5 = hashlib.md5()
     try:
@@ -29,7 +26,6 @@ def get_file_hash(file_path):
         return None
     return hash_md5.hexdigest()
 
-# Function to check file with VirusTotal
 def check_file_with_virustotal(api_key, file_hash):
     url = f"https://www.virustotal.com/api/v3/files/{file_hash}"
     headers = {
@@ -42,7 +38,6 @@ def check_file_with_virustotal(api_key, file_hash):
         type(Fore.RED + f"Error querying VirusTotal: {response.status_code}")
         return None
 
-# Function to scan files in a folder
 def scan_folder(api_key, folder_path):
     for root, dirs, files in os.walk(folder_path):
         for file in files:
@@ -59,7 +54,6 @@ def scan_folder(api_key, folder_path):
                         type(Fore.GREEN + f"File {file_path} is clean.")
             print(Style.RESET_ALL)
 
-# Main function
 def main():
     type(Fore.CYAN + "Enter your VirusTotal API key: ", delay=0.02)
     api_key = input()
